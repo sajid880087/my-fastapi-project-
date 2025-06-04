@@ -87,6 +87,10 @@ async def root(request: Request) -> Response:
 async def signup_page(request: Request) -> Response:
     return templates.TemplateResponse("signup.html", {"request": request})
 
+@app.get("/signup.html", response_class=HTMLResponse)
+async def signup_html_page(request: Request) -> Response:
+    return templates.TemplateResponse("signup.html", {"request": request})
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request, success: Optional[str] = None) -> Response:
     return templates.TemplateResponse("login.html", {"request": request, "success": success})
@@ -190,6 +194,10 @@ async def register(request: Request, email: str = Form(...), password: str = For
 async def forgot_password_page(request: Request) -> Response:
     return templates.TemplateResponse("forgot_password.html", {"request": request})
 
+@app.get("/forgot-password.html", response_class=HTMLResponse)
+async def forgot_password_html_page(request: Request) -> Response:
+    return templates.TemplateResponse("forgot_password.html", {"request": request})
+
 @app.post("/reset-password")
 async def reset_password(
     request: Request,
@@ -220,6 +228,7 @@ async def reset_password(
         return templates.TemplateResponse("forgot_password.html", {"request": request, "error": "An error occurred. Please try again."})
     finally:
         db.close()
+
 @app.get("/activity-log", response_class=HTMLResponse)
 async def activity_log(request: Request, current_user: Optional[str] = Depends(get_current_user)) -> Response:
     if not current_user:
@@ -240,4 +249,4 @@ async def activity_log(request: Request, current_user: Optional[str] = Depends(g
             "activities": activities
         })
     finally:
-        db.close()  
+        db.close()
