@@ -10,7 +10,8 @@ from passlib.context import CryptContext
 import logging
 from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime
-from user_agents import parse as parse_ua  # new import
+from user_agents import parse as parse_ua
+from typing import Optional  # <--- Added here
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -73,7 +74,7 @@ def init_db() -> None:
 
 init_db()
 
-def get_current_user(request: Request) -> str | None:
+def get_current_user(request: Request) -> Optional[str]:  # changed here
     return request.session.get("user_email")
 
 def get_device_info(user_agent_str: str) -> str:
@@ -91,7 +92,7 @@ async def signup_page(request: Request) -> Response:
     return templates.TemplateResponse("signup.html", {"request": request})
 
 @app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request, success: str | None = None) -> Response:
+async def login_page(request: Request, success: Optional[str] = None) -> Response:  # changed here
     return templates.TemplateResponse("login.html", {"request": request, "success": success})
 
 @app.post("/login")
@@ -139,7 +140,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         db.close()
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, current_user: str | None = Depends(get_current_user)) -> Response:
+async def dashboard(request: Request, current_user: Optional[str] = Depends(get_current_user)) -> Response:  # changed here
     if not current_user:
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
