@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, HTTPException, Response, status, Depends
+from fastapi import FastAPI, Request, Form, status, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import create_engine, Column, String, inspect, DateTime, Integer, ForeignKey, Text
@@ -17,24 +17,27 @@ from typing import Optional
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables
+# Load environment variables from .env file
 load_dotenv()
 
 app = FastAPI()
+
+# Add session middleware (set your own secret key in .env)
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET_KEY", "default-secret"))
 
 templates = Jinja2Templates(directory="templates")
 
-# Password hashing setup
+# Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Database configuration
+# Database setup
 DATABASE_URL = f"mysql+pymysql://{os.getenv('DB_USER', 'root')}:{os.getenv('DB_PASSWORD', '')}@{os.getenv('DB_HOST', 'localhost')}/{os.getenv('DB_NAME', 'user_db')}"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+# User model
 class User(Base):
     __tablename__ = "users"
     email = Column(String(120), primary_key=True, index=True)
@@ -46,6 +49,7 @@ class User(Base):
     def verify_password(self, password: str) -> bool:
         return pwd_context.verify(password, self.password_hash)
 
+# Activity Log model
 class ActivityLog(Base):
     __tablename__ = "activity_logs"
     id = Column(Integer, primary_key=True, index=True)
@@ -57,6 +61,7 @@ class ActivityLog(Base):
 
     user = relationship("User", back_populates="activities")
 
+# Create tables if they don't exist
 def init_db() -> None:
     try:
         inspector = inspect(engine)
@@ -71,32 +76,30 @@ def init_db() -> None:
 
 init_db()
 
+# Helper: Get current logged-in user email from session
 def get_current_user(request: Request) -> Optional[str]:
     return request.session.get("user_email")
 
+# Helper: Parse device info from user-agent string
 def get_device_info(user_agent_str: str) -> str:
     ua = parse_ua(user_agent_str)
     device = f"{ua.browser.family} {ua.browser.version_string} on {ua.os.family} {ua.os.version_string}"
     return device
 
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request) -> Response:
+async def root(request: Request):
     return RedirectResponse(url="/login")
 
 @app.get("/signup", response_class=HTMLResponse)
-async def signup_page(request: Request) -> Response:
-    return templates.TemplateResponse("signup.html", {"request": request})
-
-@app.get("/signup.html", response_class=HTMLResponse)
-async def signup_html_page(request: Request) -> Response:
+async def signup_page(request: Request):
     return templates.TemplateResponse("signup.html", {"request": request})
 
 @app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request, success: Optional[str] = None) -> Response:
+async def login_page(request: Request, success: Optional[str] = None):
     return templates.TemplateResponse("login.html", {"request": request, "success": success})
 
 @app.post("/login")
-async def login(request: Request, email: str = Form(...), password: str = Form(...)) -> Response:
+async def login(request: Request, email: str = Form(...), password: str = Form(...)):
     db = SessionLocal()
     try:
         user = db.query(User).filter(User.email == email).first()
@@ -130,7 +133,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         db.close()
 
 @app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard(request: Request, current_user: Optional[str] = Depends(get_current_user)) -> Response:
+async def dashboard(request: Request, current_user: Optional[str] = Depends(get_current_user)):
     if not current_user:
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -152,12 +155,12 @@ async def dashboard(request: Request, current_user: Optional[str] = Depends(get_
         db.close()
 
 @app.get("/logout")
-async def logout(request: Request) -> Response:
+async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
 @app.post("/register")
-async def register(request: Request, email: str = Form(...), password: str = Form(...)) -> Response:
+async def register(request: Request, email: str = Form(...), password: str = Form(...)):
     db = SessionLocal()
     try:
         existing_user = db.query(User).filter(User.email == email).first()
@@ -191,11 +194,7 @@ async def register(request: Request, email: str = Form(...), password: str = For
         db.close()
 
 @app.get("/forgot-password", response_class=HTMLResponse)
-async def forgot_password_page(request: Request) -> Response:
-    return templates.TemplateResponse("forgot_password.html", {"request": request})
-
-@app.get("/forgot-password.html", response_class=HTMLResponse)
-async def forgot_password_html_page(request: Request) -> Response:
+async def forgot_password_page(request: Request):
     return templates.TemplateResponse("forgot_password.html", {"request": request})
 
 @app.post("/reset-password")
@@ -205,7 +204,7 @@ async def reset_password(
     old_password: str = Form(...),
     new_password: str = Form(...),
     confirm_password: str = Form(...)
-) -> Response:
+):
     db = SessionLocal()
     try:
         if new_password != confirm_password:
@@ -230,7 +229,7 @@ async def reset_password(
         db.close()
 
 @app.get("/activity-log", response_class=HTMLResponse)
-async def activity_log(request: Request, current_user: Optional[str] = Depends(get_current_user)) -> Response:
+async def activity_log(request: Request, current_user: Optional[str] = Depends(get_current_user)):
     if not current_user:
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
