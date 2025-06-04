@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, HTTPException, Response, status, Depends
+from fastapi import FastAPI, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import create_engine, Column, String, inspect, DateTime, Integer, ForeignKey, Text
@@ -13,26 +13,26 @@ from typing import Optional
 import os
 import logging
 
-# Load .env
+# Load environment variables
 load_dotenv()
 
-# Logging
+# Logging config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# FastAPI app
+# Initialize FastAPI app with docs urls
 app = FastAPI(docs_url="/docs", redoc_url="/redoc")
 
-# Session Middleware
+# Add session middleware for session management
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET_KEY", "default-secret"))
 
-# Templates
+# Setup templates directory
 templates = Jinja2Templates(directory="templates")
 
-# Password Hashing
+# Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Database
+# Database setup
 DATABASE_URL = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
@@ -61,26 +61,28 @@ class ActivityLog(Base):
 
     user = relationship("User", back_populates="activities")
 
-# DB init
+# Create tables if not exists
 def init_db():
     inspector = inspect(engine)
     if not inspector.has_table("users"):
         Base.metadata.create_all(bind=engine)
         logger.info("Created tables.")
     else:
-        logger.info("Tables exist.")
+        logger.info("Tables already exist.")
 
 init_db()
 
-# Session
+# Helper: Get current logged-in user email from session
 def get_current_user(request: Request) -> Optional[str]:
     return request.session.get("user_email")
 
+# Helper: Parse device info from user-agent
 def get_device_info(ua_string: str) -> str:
     ua = parse_ua(ua_string)
     return f"{ua.browser.family} {ua.browser.version_string} on {ua.os.family} {ua.os.version_string}"
 
 # Routes
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
     return RedirectResponse(url="/login")
@@ -102,8 +104,8 @@ async def register(request: Request, email: str = Form(...), password: str = For
 
         device_info = get_device_info(request.headers.get("user-agent", "Unknown"))
         db.add(ActivityLog(user_email=email, activity_type="registration", description="Account created", device_info=device_info))
-        db.commit()
 
+        db.commit()
         return RedirectResponse(url="/login?success=Registration successful", status_code=303)
     except Exception as e:
         db.rollback()
@@ -200,3 +202,5 @@ async def activity_log(request: Request, current_user: Optional[str] = Depends(g
         })
     finally:
         db.close()
+@app.get("/delete-account", response_class=HTMLResponse)
+async def delete_account(request: Request, current_user: Optional[str] = Depends(get_current_user)):        
