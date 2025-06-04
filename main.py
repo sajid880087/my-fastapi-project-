@@ -10,7 +10,8 @@ from passlib.context import CryptContext
 import logging
 from starlette.middleware.sessions import SessionMiddleware
 from datetime import datetime
-from user_agents import parse as parse_ua  # new import
+from user_agents import parse as parse_ua  # new
+from typing import Optional 
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -73,7 +74,10 @@ def init_db() -> None:
 
 init_db()
 
-def get_current_user(request: Request) -> str | None:
+
+
+def get_current_user(request: Request) -> Optional[str]:
+
     return request.session.get("user_email")
 
 def get_device_info(user_agent_str: str) -> str:
