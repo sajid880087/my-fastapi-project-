@@ -220,3 +220,24 @@ async def reset_password(
         return templates.TemplateResponse("forgot_password.html", {"request": request, "error": "An error occurred. Please try again."})
     finally:
         db.close()
+@app.get("/activity-log", response_class=HTMLResponse)
+async def activity_log(request: Request, current_user: Optional[str] = Depends(get_current_user)) -> Response:
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.email == current_user).first()
+        if not user:
+            request.session.clear()
+            return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+        activities = db.query(ActivityLog).filter(ActivityLog.user_email == current_user).order_by(ActivityLog.timestamp.desc()).all()
+
+        return templates.TemplateResponse("activity_log.html", {
+            "request": request,
+            "user_email": current_user,
+            "activities": activities
+        })
+    finally:
+        db.close()  
