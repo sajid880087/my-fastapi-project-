@@ -1,460 +1,55 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Emplo</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root[data-theme="light"] {
-            --primary-color: #2563eb;
-            --secondary-color: #1d4ed8;
-            --background-color: #f3f4f6;
-            --card-background: #ffffff;
-            --text-primary: #111827;
-            --text-secondary: #6b7280;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-        }
-
-        :root[data-theme="dark"] {
-            --primary-color: #3b82f6;
-            --secondary-color: #2563eb;
-            --background-color: #1f2937;
-            --card-background: #374151;
-            --text-primary: #f9fafb;
-            --text-secondary: #d1d5db;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
-            color: var(--text-primary);
-        }
-
-        .navbar {
-            background: var(--primary-color);
-            padding: 1rem 2rem;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: white;
-            text-decoration: none;
-        }
-
-        .navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        .logout-btn {
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 0.5rem;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .card {
-            background: var(--card-background);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-card {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-
-        .stat-info h3 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .stat-info p {
-            margin: 0;
-            color: var(--text-secondary);
-        }
-
-        .activity-card {
-            grid-column: 1 / -1;
-        }
-
-        .activity-list {
-            margin-top: 1rem;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: flex-start;
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.3s;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-item:hover {
-            background-color: rgba(var(--primary-rgb), 0.05);
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: rgba(var(--primary-rgb), 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 1rem;
-        }
-
-        .activity-icon i {
-            color: var(--primary-color);
-            font-size: 1.2rem;
-        }
-
-        .activity-details {
-            flex: 1;
-        }
-
-        .activity-details h4 {
-            margin: 0;
-            color: var(--text-primary);
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .activity-details p {
-            margin: 0.25rem 0;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .activity-details small {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-        }
-
-        .welcome-message {
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 1rem;
-            color: white;
-        }
-
-        .welcome-message h1 {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .welcome-message p {
-            margin: 0.5rem 0 0;
-            opacity: 0.9;
-        }
-
-        .live-clock-container {
-            margin-top: 1rem;
-            font-size: 2.5rem;
-            font-weight: bold;
-            text-align: center;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.8; }
-            100% { opacity: 1; }
-        }
-
-        #live-clock {
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-        }
-
-        .theme-toggle {
-            padding: 0.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 0.5rem;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-right: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* Add smooth transition for theme changes */
-        * {
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 1rem;
-            }
-
-            .container {
-                padding: 0 1rem;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .activity-log {
-            margin-top: 2rem;
-            padding: 1.5rem;
-        }
-
-        .login-times {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .login-times p {
-            margin: 0;
-            font-size: 0.9rem;
-        }
-
-        .login-times strong {
-            color: var(--text-primary);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #f0f2f5;
+    }
+    .card {
+      border-radius: 1rem;
+      transition: 0.3s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
-    <nav class="navbar">
-        <a href="/dashboard" class="navbar-brand">Emplo</a>
-        <div class="navbar-right">
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <i class="fas fa-moon"></i>
-                <span class="theme-text">Dark Mode</span>
-            </button>
-            <div class="user-info">
-                <div class="avatar">
-                    {{ user_email[0].upper() }}
-                </div>
-                <span>{{ user_email }}</span>
-            </div>
-            <a href="/logout" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="welcome-message">
-            <h1>Welcome back!</h1>
-            <p>Here's what's happening with your account today.</p>
-            <div class="live-clock-container">
-                <span id="live-clock"></span>
-            </div>
-        </div>
-
-        <div class="dashboard-grid">
-            <div class="card stat-card">
-                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color);">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>Account Active</h3>
-                    <p>Your account is in good standing</p>
-                </div>
-            </div>
-
-            <div class="card stat-card">
-                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning-color);">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>Login History</h3>
-                    <div class="login-times">
-                        <p><strong>Current:</strong> {{ last_login.strftime('%Y-%m-%d %I:%M %p') if last_login else 'First login' }}</p>
-                        {% if previous_login %}
-                        <p><strong>Previous:</strong> {{ previous_login.strftime('%Y-%m-%d %I:%M %p') }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="card stat-card">
-                <div class="stat-icon" style="background: rgba(37, 99, 235, 0.1); color: var(--primary-color);">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>Security</h3>
-                    <p>2FA not enabled</p>
-                </div>
-            </div>
-
-            <div class="card activity-card">
-                <h3>Recent Activity</h3>
-                <div class="activity-list">
-                    {% for activity in recent_activities %}
-                    <div class="activity-item">
-                        <div class="activity-icon">
-                            {% if activity.activity_type == 'login' %}
-                                <i class="fas fa-sign-in-alt"></i>
-                            {% elif activity.activity_type == 'profile_update' %}
-                                <i class="fas fa-user-edit"></i>
-                            {% elif activity.activity_type == 'security_alert' %}
-                                <i class="fas fa-shield-alt"></i>
-                            {% elif activity.activity_type == 'registration' %}
-                                <i class="fas fa-user-plus"></i>
-                            {% else %}
-                                <i class="fas fa-info-circle"></i>
-                            {% endif %}
-                        </div>
-                        <div class="activity-details">
-                            <h4>{{ activity.activity_type|title }}</h4>
-                            <p>{{ activity.description }}</p>
-                            <small>{{ activity.timestamp.strftime('%Y-%m-%d %I:%M %p') }}</small>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+  <nav class="navbar navbar-dark bg-dark px-3">
+    <span class="navbar-brand">Dashboard</span>
+    <div>
+      <a href="index.html" class="btn btn-outline-light">Logout</a>
     </div>
+  </nav>
 
-    <script>
-        // Live clock update function
-        function updateClock() {
-            const now = new Date();
-            const options = {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            };
-            const timeStr = now.toLocaleString('en-US', options);
-            const dateStr = now.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-            document.getElementById('live-clock').innerHTML = `${timeStr}<br><span style="font-size: 0.6em">${dateStr}</span>`;
-        }
-
-        // Update clock immediately and then every second
-        updateClock();
-        setInterval(updateClock, 1000);
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            const themeIcon = document.querySelector('.theme-toggle i');
-            const themeText = document.querySelector('.theme-text');
-            
-            if (html.getAttribute('data-theme') === 'light') {
-                html.setAttribute('data-theme', 'dark');
-                themeIcon.className = 'fas fa-sun';
-                themeText.textContent = 'Light Mode';
-                localStorage.setItem('theme', 'dark');
-            } else {
-                html.setAttribute('data-theme', 'light');
-                themeIcon.className = 'fas fa-moon';
-                themeText.textContent = 'Dark Mode';
-                localStorage.setItem('theme', 'light');
-            }
-        }
-
-        // Check for saved theme preference
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            const html = document.documentElement;
-            const themeIcon = document.querySelector('.theme-toggle i');
-            const themeText = document.querySelector('.theme-text');
-            
-            html.setAttribute('data-theme', savedTheme);
-            if (savedTheme === 'dark') {
-                themeIcon.className = 'fas fa-sun';
-                themeText.textContent = 'Light Mode';
-            }
-        });
-    </script>
+  <div class="container mt-5">
+    <h3 class="mb-4">Welcome Back!</h3>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card shadow-sm p-3">
+          <h5><i class="bi bi-people-fill me-2"></i>Total Students</h5>
+          <p class="fs-4">150</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm p-3">
+          <h5><i class="bi bi-person-plus-fill me-2"></i>New Admissions</h5>
+          <p class="fs-4">25</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm p-3">
+          <h5><i class="bi bi-journal-text me-2"></i>Courses Offered</h5>
+          <p class="fs-4">10</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
-</html> 
+</html>
